@@ -1,0 +1,28 @@
+{
+    "header": {
+        "MAIN": "Trade",
+        "DOC": "Portfolio",
+        "LOGIN": "Markets",
+        "PROFILE": "Profile"
+      },
+    "navigation": {
+      "DASHBOARD": "Dashboard",
+      "PORTFOLIO": "Portfolio",
+      "VAULT": "My Vault",
+      "HISTORY": "Transaction History",
+      "AVAILABLE": "Available Vaults",
+      "DOC": "Documents",
+      "SETTINGS": "User Info"
+    },
+
+    "vault": {
+      "OVERVIEW": "Overview",
+      "ACTIVITY": "Activity",
+      "SECURITY": "Security"
+    },
+    "Transactions": {
+      "TRANSACTIONS": "Transactions",
+      "HOLDING": "Holding History",
+      "ACCOUNT": "Account Statements"
+    }
+}
