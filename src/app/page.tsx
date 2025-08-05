@@ -1,11 +1,13 @@
 import Image from "next/image";
 import React from "react";
-import {Recent, Portfolio, News} from "@/components"
+import {Recent, Portfolio, News, Chart} from "@/components"
 
 export default function Home() {
   return (
     <div className="flex flex-col p-10 space-y-8">
-      <div className="dashboard"></div>
+      <div className="dashboard">
+        <Chart />
+      </div>
       <div className="flex flex-col space-y-8 border-[0.5px] border-gray-400 rounded-2xl p-8">
         <h1 className="text-3xl text-white font-bold ">Quick Trade</h1>
         <div className="button-group space-x-4 flex flex-col md:flex-row">
