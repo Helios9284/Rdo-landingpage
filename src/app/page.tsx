@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React from "react";
-import {Recent, Portfolio} from "@/components"
+import {Recent, Portfolio, News} from "@/components"
 
 export default function Home() {
   return (
@@ -32,9 +32,13 @@ export default function Home() {
         <div className="flex md:flex-2/3">
           <Recent />
         </div>
-        <div className="flex md:flex-1/3">
+        <div className="flex flex-col space-y-4 md:flex-1/3">
           <Portfolio />
+          <div className="flex space-y-4 md:flex-1/3">
+            <News />
+          </div>
         </div>
+        
       </div>
     </div>
   );
