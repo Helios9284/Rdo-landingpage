@@ -14,18 +14,18 @@ export default function Home() {
           <div className="flex-col space-y-4 md:flex-1/2 ">
             <div className="flex space-x-4">
               <button className="w-full hover:cursor-pointer bg-green-500 hover:bg-green-400 text-white text-2xl rounded-xl py-3">Buy BTC</button>
-              <button className="w-full hover:cursor-pointer bg-amber-500 hover:bg-amber-400 text-white text-2xl rounded-xl py-3">Sell BTC</button>
+              <button className="w-full hover:cursor-pointer bg-blue-500 hover:bg-blue-400 text-white text-2xl rounded-xl py-3">Sell BTC</button>
             </div>
             <div className="flex space-x-4">
               <button className="w-full hover:cursor-pointer bg-green-500 hover:bg-green-400 text-white text-2xl rounded-xl py-3">Buy ADA</button>
-              <button className="w-full hover:cursor-pointer bg-amber-500 hover:bg-amber-400 text-white text-2xl rounded-xl py-3">Sell ADA</button>
+              <button className="w-full hover:cursor-pointer bg-blue-500 hover:bg-blue-400 text-white text-2xl rounded-xl py-3">Sell ADA</button>
             </div>
             <div className="flex space-x-4"></div>
           </div>
           <div className="flex-col space-y-4 md:flex-1/2">
             <div className="flex space-x-4">
               <button className="w-full hover:cursor-pointer bg-green-500 hover:bg-green-400 text-white text-2xl rounded-xl py-3">Buy ETH</button>
-              <button className="w-full hover:cursor-pointer bg-amber-500 hover:bg-amber-400 text-white text-2xl rounded-xl py-3">Sell ETH</button>
+              <button className="w-full hover:cursor-pointer bg-blue-500 hover:bg-blue-400 text-white text-2xl rounded-xl py-3">Sell ETH</button>
             </div>
           </div>
         </div>

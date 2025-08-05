@@ -22,9 +22,9 @@ export const News = () => {
                 </div>
             </div>
             <div className="flex flex-col space-y-4">
-                <button className="rounded-xl bg-amber-400 text-lg font-bold w-full py-4 text-gray-900"> Trade Ready & Alert</button>
-                <button className="rounded-xl bg-gray-700 text-lg font-bold w-full py-4 text-gray-100"> Russian oligarch paid 3 BTC worth of BTC</button>
-                <button className="rounded-xl bg-gray-900 text-lg font-bold w-full py-4 text-gray-100 border-[0.5px] border-gray-200">SDO Club Blog</button>
+                <button className="rounded-xl hover:bg-amber-500 hover:cursor-pointer bg-amber-400 text-lg font-bold w-full py-4 text-gray-900"> Trade Ready & Alert</button>
+                <button className="rounded-xl hover:cursor-pointer hover:text-white hover:bg-gray-600 bg-gray-700 text-lg font-bold w-full py-4 text-gray-100"> Russian oligarch paid 3 BTC worth of BTC</button>
+                <button className="rounded-xl hover:cursor-pointer hover:text-white hover:bg-gray-800 bg-gray-900 text-lg font-bold w-full py-4 text-gray-100 border-[0.5px] border-gray-200">SDO Club Blog</button>
             </div>
         </div>
     )

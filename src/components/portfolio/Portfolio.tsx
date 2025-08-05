@@ -9,7 +9,7 @@ export const Portfolio = () => {
     ];
     return (
         <div className="recent-trader flex flex-col p-8 border-[0.5px] rounded-xl border-gray-400 w-full space-y-8">
-            <h1 className="text-white text-2xl font-bold">Recent Trades</h1>
+            <h1 className="text-white text-2xl font-bold">Portfolio</h1>
             <span className="text-amber-300 font-bold text-2xl">$94,740</span>
             <div className="flex flex-col space-y-4 w-full">
                 {TradeItem.map((trade) => (
