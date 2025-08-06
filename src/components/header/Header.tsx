@@ -3,23 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import {userHeaderList, useNavigationList} from "@/hooks"
-import { CiUser } from "react-icons/ci";
-import { IoIosLogOut, IoMdNotifications, IoMdClose, IoMdAlert   } from "react-icons/io";
-import { it } from 'node:test';
+import { useNavigationList} from "@/hooks"
+import {  IoMdNotifications, IoMdClose, IoMdAlert   } from "react-icons/io";
 
 export const Header = () =>{
     const pathname = usePathname();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [notificationOpen, setNotificationOpen] = useState(false);
-    const [profileOpen, setprofileOpen] = useState(false)
-    const { headerList } = userHeaderList();
     const {navigationList} = useNavigationList();
 
-    const profileItem = [
-        { id: '1', name: 'Profile', path: '/profile' },
-        { id: '2', name: "Log out", path: '/'}
-      ];
 
     return(
         <header className="relative w-full  md:bg-[#000000] p-4 md:px-6 border-b-[0.5px] border-[#1a1a1a] bg-gray-900 ">
@@ -30,50 +22,28 @@ export const Header = () =>{
                     </p>
                 </div>
                 <div className='flex space-x-4'>
-                    <Link href = "/login" className=' text-white border-gray-100 border-[0.5px] px-4 py-2 rounded-xl font-bold'>Sign In</Link>
-                    <Link href = "/signup" className=' bg-gray-100 text-gray-900 font-bold px-4 py-2 rounded-xl'>Sign Up</Link>
+                    <Link href = "/login" className=' text-white border-gray-100 border-[0.5px] px-4 py-2 rounded-xl font-bold text-sm md:text-ls'>Sign In</Link>
+                    <Link href = "/signup" className=' bg-gray-100 text-gray-900 font-bold px-4 py-2 rounded-xl text-sm md:text-ls'>Sign Up</Link>
                     <button  className='hover:text-gray-200 hover:cursor-pointer text-white' 
                         onClick={() => setNotificationOpen(!notificationOpen)}><IoMdNotifications size = "2em"/>
                     </button>
                 </div>
-                
-                <div className='flex items-center space-x-5 md:hidden'>
-                    <button  className='hover:text-white hover:cursor-pointer text-gray-900' 
-                    onClick={() => setNotificationOpen(!notificationOpen)}><IoMdNotifications size = "1.5em"/></button>
-                    <div className='rounded-[8px] bg-gray-200 p-2' onClick={() => setprofileOpen(!profileOpen)}>
-                        <Link href = "/profile" className='hover:text-white text-white bg-blue-600 p-3 rounded-full w-[6px] h-[6px] flex justify-center items-center'>Ts</Link>
-                    </div>
-                    
-                </div>
-                <button
-                    className="md:hidden text-gray-900 md:text-white"
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
-                    {mobileMenuOpen ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    )}
-                    </svg>
-                </button>
-        
                 
             </div>
             {mobileMenuOpen && (
             <div className="md:hidden bg-gray-100 md:bg-[#000C26] py-4 px-4 text-[14px]">
                 <nav className="flex flex-col space-y-4">
                 {navigationList.map(({text, href, id}) => (
-                    <Link
+                    <link
                     key={id}
-                    href={href}
+                    // href={href}
                     className={`text-gray-900 md:text-gray-300 hover:bg-gray-300 md:hover:bg-gray-800 cursor-pointer transition-colors 
                         ${pathname === href ? `rounded-r-2xl p-2 text-gray-700 md:text-white border-l-2 border-[#60EBEB] bg-gray-800' ${id === 1 ? 'text-[#60EBEB]' : 'text-gray-700 md:text-white'}` : 'p-2 rounded-2xl' }
                         `}
                     onClick={() => setMobileMenuOpen(false)}
                     >
                     {text}
-                    </Link>
+                    </link>
                 ))}
                 </nav>
             </div>
@@ -97,30 +67,7 @@ export const Header = () =>{
 
                 </div>
             )}
-            {profileOpen && (
-                <div className="md:hidden bg-gray-100 md:bg-[#000C26] py-4 px-4 text-[14px] space-y-2">
-                    <div className='flex space-x-1 text-gray-700 items-center border-b-[0.5px] border-gray-300'>
-                        <div className='hover:text-white text-white bg-blue-600 p-4 rounded-full w-[20px] h-[20px] flex justify-center items-center'>TS</div>
-                        <div className='flex flex-col'>
-                            <p className='font-bold text-[14px]'>Taylor Smith</p>
-                            <p className='text-[12px]'>taylor.smith@example.com</p>
-                        </div>
-                    </div>
-                    
-                    <nav className="flex flex-col space-y-4">
-                    {profileItem.map((items) => (
-                        <Link
-                        key = {items.id}
-                        href={items.path}
-                        className="text-gray-900 md:text-gray-300 hover:bg-gray-300 cursor-pointer transition-colors p-2 rounded-2xl"
-                        onClick={() => setMobileMenuOpen(false)}
-                        >
-                        {items.name}
-                        </Link>
-                    ))}
-                    </nav>
-                </div>
-            )}
+            
         </header>
     )
 }
