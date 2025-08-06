@@ -26,10 +26,11 @@ const data = [
 export default function Home() {
 
   const [darkMode, setDarkMode] = useState(true)
+  const [urlPath, setUrlPath] = useState('/')
 
   return (
-    <div className="flex flex-col w-full  space-y-20">
-      <div className="middle py-10 flex  border-b-[0.5px] border-[#1a1a1a]">
+    <div className="flex flex-col w-full space-y-5  md:space-y-20">
+      <div className="middle py-5 md:py-10 flex  border-b-[0.5px] border-[#1a1a1a]">
         <div className="flex px-5 md:px-20 justify-between w-full ">
           <div className="flex flex-col space-y-8 items-start">
             <div className=" flex space-x-3 align-middle items-center">
@@ -57,9 +58,15 @@ export default function Home() {
                 <ArrowRight size={14} />
                 <RefreshCw size={14} />
               </div>
-              <div className="bg-[#1f1f1f] rounded-full px-4 py-1 text-gray-300 text-sm w-1/2 text-center">
+              {/* <div className="bg-[#1f1f1f] rounded-full px-4 py-1 text-gray-300 text-sm w-1/2 text-left">
                 /
-              </div>
+              </div> */}
+              <input
+                type="text"
+                value={urlPath}
+                onChange={(e) => setUrlPath(e.target.value)}
+                className="bg-[#1f1f1f] rounded-full px-4 py-1 text-gray-300 text-sm w-1/2 text-left focus:outline-none"
+              />
               <div className="flex items-center gap-2 text-gray-400">
                 <Copy size={14} />
                 <Maximize2 size={14} />
@@ -74,10 +81,10 @@ export default function Home() {
               </div>
 
               {/* Center Nav */}
-              <ul className="hidden flex items-center gap-2 md:gap-8 text-gray-300 text-sm">
-                <li className="hover:text-white cursor-pointer">Trade</li>
-                <li className="hover:text-white cursor-pointer">Portfolio</li>
-                <li className="hover:text-white cursor-pointer">Market</li>
+              <ul className="hidden md:flex items-center gap-2 md:gap-8 text-gray-300 text-sm">
+                <li onClick={() => setUrlPath('/trade')} className="hover:text-white cursor-pointer">Trade</li>
+                <li onClick={() => setUrlPath('/portfolio')} className="hover:text-white cursor-pointer">Portfolio</li>
+                <li onClick={() => setUrlPath('/market')} className="hover:text-white cursor-pointer">Market</li>
               </ul>
 
               {/* Right Side */}
@@ -91,7 +98,7 @@ export default function Home() {
                 </button>
               </div>
             </nav>
-            {/* <div className="bg-black text-white p-6 rounded-xl shadow-md w-full px-5 md:px-30">
+            <div className="bg-black text-white p-6 rounded-xl shadow-md w-full md:px-30">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-sm md:text-xl font-bold">BTC/USD</h2>
                 <span className="text-yellow-400 text-sm md:text-lg font-semibold">$48,200</span>
@@ -116,7 +123,7 @@ export default function Home() {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div> */}
+            </div>
           </div>
       </div>
     </div>
