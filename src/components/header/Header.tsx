@@ -22,13 +22,13 @@ export const Header = () =>{
       ];
 
     return(
-        <header className="relative w-full bg-gray-100 md:bg-[#000C26] p-4 md:px-6 border-b-[0.5px] border-gray-700 ">
+        <header className="relative w-full  md:bg-[#000000] p-4 md:px-6 border-b-[0.5px] border-[#1a1a1a] bg-gray-900 ">
             <div className="mx-auto flex items-center justify-between">
                 <div className='flex space-x-16'>
                     <p className="text-gray-200 font-semibold font-cleanow text-sm md:text-xl text-shadow-[-3px_3px_#054642] ">
-                        <span className='font-bold text-[#f7c709] text-3xl'>RDO</span>
+                        <span className='font-bold text-gray-50 text-3xl'>RDO</span>
                     </p>
-                    <nav className="hidden md:flex items-center space-x-8 md:pr-5">
+                    {/* <nav className="hidden md:flex items-center space-x-8 md:pr-5">
                         {headerList.map(({text, href, id}) => (
                             <Link
                                 key={id}
@@ -40,11 +40,11 @@ export const Header = () =>{
                             </Link>
                         ))}
                         
-                    </nav>
+                    </nav> */}
                 </div>
                 <div className='flex space-x-4'>
-                    <Link href = "/login" className='hover:bg-blue-400 text-white bg-blue-500 px-4 py-2 rounded-xl font-bold'>Login</Link>
-                    <Link href = "/signup" className='hover:bg-amber-500 bg-amber-400 text-gray-900 font-bold px-4 py-2 rounded-xl'>Sign Up</Link>
+                    <Link href = "/login" className=' text-white border-gray-100 border-[0.5px] px-4 py-2 rounded-xl font-bold'>Sign In</Link>
+                    <Link href = "/signup" className=' bg-gray-100 text-gray-900 font-bold px-4 py-2 rounded-xl'>Sign Up</Link>
                     <button  className='hover:text-white hover:cursor-pointer text-blue-500' 
                         onClick={() => setNotificationOpen(!notificationOpen)}><IoMdNotifications size = "2em"/>
                     </button>
