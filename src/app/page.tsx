@@ -1,9 +1,12 @@
 'use client';
 import React from "react";
 import { BsFlag, BsArrowLeft } from "react-icons/bs";
+import { usePathname } from 'next/navigation';
 import { ArrowLeft, ArrowRight, RefreshCw, Maximize2, Copy } from 'lucide-react'
 import { useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
+import {useNavigationList} from "@/hooks"
+import Link from 'next/link';
 import {
   LineChart,
   Line,
@@ -27,6 +30,9 @@ export default function Home() {
 
   const [darkMode, setDarkMode] = useState(true)
   const [urlPath, setUrlPath] = useState('/')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const {navigationList} = useNavigationList();
+  const pathname = usePathname();
 
   return (
     <div className="flex flex-col w-full space-y-5  md:space-y-20">
@@ -97,7 +103,40 @@ export default function Home() {
                   Get Started →
                 </button>
               </div>
+              <button
+                    className="md:hidden text-gray-100 md:text-white"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+                    {mobileMenuOpen ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    )}
+                    </svg>
+                </button>
             </nav>
+            {mobileMenuOpen && (
+            <div className="md:hidden bg-gray-100 md:bg-[#000C26] py-4 px-4 text-[14px] rounded-2xl">
+                <nav className="flex flex-col space-y-4">
+                {navigationList.map(({text, href, id}) => (
+                    <Link
+                    key={id}
+                    href={href}
+                    className={`text-gray-900 md:text-gray-300 hover:bg-gray-300 md:hover:bg-gray-800 cursor-pointer transition-colors 
+                        ${pathname === href ? `rounded-r-2xl p-2 text-gray-700 md:text-white border-l-2 border-[#1a1a1a] bg-gray-800' ${id === 1 ? 'text-[#60EBEB]' : 'text-gray-700 md:text-white'}` : 'p-2 rounded-2xl' }
+                        `}
+                    onClick={() => 
+                      {
+                        setUrlPath(href)
+                        setMobileMenuOpen(false)}}
+                    >
+                    {text}
+                    </Link>
+                ))}
+                </nav>
+            </div>
+            )}
             <div className="bg-black text-white p-6 rounded-xl shadow-md w-full md:px-30">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-sm md:text-xl font-bold">BTC/USD</h2>

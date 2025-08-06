@@ -6,13 +6,9 @@
         "PROFILE": "Profile"
       },
     "navigation": {
-      "DASHBOARD": "Dashboard",
+      "TRADE": "Dashboard",
       "PORTFOLIO": "Portfolio",
-      "VAULT": "My Vault",
-      "HISTORY": "Transaction History",
-      "AVAILABLE": "Available Vaults",
-      "DOC": "Documents",
-      "SETTINGS": "User Info"
+      "MARKET": "My Vault"
     },
 
     "vault": {

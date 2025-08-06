@@ -28,19 +28,6 @@ export const Header = () =>{
                     <p className="text-gray-200 font-semibold font-cleanow text-sm md:text-xl text-shadow-[-3px_3px_#054642] ">
                         <span className='font-bold text-gray-50 text-3xl'>RDO</span>
                     </p>
-                    {/* <nav className="hidden md:flex items-center space-x-8 md:pr-5">
-                        {headerList.map(({text, href, id}) => (
-                            <Link
-                                key={id}
-                                href={href}
-                                className={`text-gray-300 hover:text-white transition-colors ${pathname === href ? 'text-white border-b-2 border-[#f7c709]' : ''
-                                }`}
-                            >
-                                {text}
-                            </Link>
-                        ))}
-                        
-                    </nav> */}
                 </div>
                 <div className='flex space-x-4'>
                     <Link href = "/login" className=' text-white border-gray-100 border-[0.5px] px-4 py-2 rounded-xl font-bold'>Sign In</Link>
