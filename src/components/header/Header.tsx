@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigationList} from "@/hooks"
 import {  IoMdNotifications, IoMdClose, IoMdAlert   } from "react-icons/io";
 
@@ -11,6 +11,24 @@ export const Header = () =>{
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [notificationOpen, setNotificationOpen] = useState(false);
     const {navigationList} = useNavigationList();
+    const [loading, setLoading] = useState(true);
+    const [taoPrice, setTaoPrice] = useState(null);
+
+    useEffect(() => {
+        async function fetchPrice() {
+        try {
+            const res = await fetch("/api/tao-price");
+            const data= await res.json();
+            setTaoPrice(data.data.data[0].price);
+        } catch (err) {
+            console.error("Failed to fetch TAO price:", err);
+        } finally {
+            setLoading(false);
+        }
+        }
+
+        fetchPrice();
+    }, []);
 
 
     return(
@@ -18,8 +36,9 @@ export const Header = () =>{
             <div className="mx-auto flex items-center justify-between">
                 <div className='flex space-x-16'>
                     <p className="text-gray-200 font-semibold font-cleanow text-sm md:text-xl text-shadow-[-3px_3px_#054642] ">
-                        <span className='font-bold text-gray-50 text-3xl'>RDO</span>
+                        <span className='font-bold text-gray-50 text-4xl'>Y S</span>
                     </p>
+                    <p className='font-bold text-gray-50 text-3xl'>💰 TAO Price: {taoPrice}</p>
                 </div>
                 <div className='flex space-x-4'>
                     <Link href = "/login" className=' text-white border-gray-100 border-[0.5px] px-4 py-2 rounded-xl font-bold text-sm md:text-ls'>Sign In</Link>

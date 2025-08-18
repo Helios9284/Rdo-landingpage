@@ -1,170 +1,250 @@
 'use client';
-import React from "react";
-import { BsFlag, BsArrowLeft } from "react-icons/bs";
-import { usePathname } from 'next/navigation';
-import { ArrowLeft, ArrowRight, RefreshCw, Maximize2, Copy } from 'lucide-react'
-import { useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
-import {useNavigationList} from "@/hooks"
-import Link from 'next/link';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from 'recharts'
-const data = [
-  { time: '09:00', price: 44800 },
-  { time: '10:00', price: 45100 },
-  { time: '11:00', price: 44500 },
-  { time: '12:00', price: 45500 },
-  { time: '13:00', price: 46000 },
-  { time: '14:00', price: 46800 },
-  { time: '15:00', price: 47500 },
-  { time: '16:00', price: 48200 },
-]
-export default function Home() {
+import { useEffect, useState } from "react";
+import { TbPlaystationX } from "react-icons/tb";
+import { GrStatusGood } from "react-icons/gr";
+import { FaFire } from "react-icons/fa";
 
-  const [darkMode, setDarkMode] = useState(true)
-  const [urlPath, setUrlPath] = useState('/')
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const {navigationList} = useNavigationList();
-  const pathname = usePathname();
+export default function Dashboard() {
+  const [loading, setLoading] = useState(true);
+  const [taoStatus, setTaoStatus] = useState<any[]>([]);
+  const [subnetInfo, setSubnetInfo] = useState<any[]>([]);
+  const [taoPrice, setTaoPrice] = useState<number | null>(null);
+  const [showUSD, setShowUSD] = useState(false); // false = TAO, true = USD
+  const [showAlphaUSD, setShowAlphaUSD] = useState(false); // false = TAO, true = USD
+
+
+  useEffect(() => {
+    async function fetchPrice() {
+      try {
+        // Fetch subnet status
+        const res = await fetch("/api/subnet-status");
+        const data = await res.json();
+        setTaoStatus(data.data.data);
+        
+        // Fetch TAO price - Fixed: use correct response variable
+        const taoPriceRes = await fetch("/api/tao-price");
+        const priceData = await taoPriceRes.json();
+        setTaoPrice(priceData.data.data[0].price);
+
+        const subnetInfoRes = await fetch("/api/subnet-info");
+        const subnetData = await subnetInfoRes.json();
+        console.log("Fetched Subnet Info:", subnetData.data.data);
+        setSubnetInfo(subnetData.data.data);
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPrice();
+  }, []);
+
+  // Optional: Log state changes
+  useEffect(() => {
+    console.log("Updated taoStatus state:", taoStatus);
+    console.log("TAO Price:", taoPrice);
+    console.log("Subnet Info:", subnetInfo);
+  }, [taoStatus, taoPrice, subnetInfo]);
+
+  const findSubnetInfo = (netuid: number) => {
+    return subnetInfo.find(info => info.netuid === netuid);
+  };
+  console.log("findSubnetInfo:", findSubnetInfo);
+
+  const getStatus = (subnetName: string | null | undefined, netuid: number) => {
+    // First check if subnet is dead (unknown/null name)
+    if (!subnetName || subnetName.toLowerCase() === 'unknown') {
+      return { 
+        status: 'Dead', 
+        icon: <TbPlaystationX className="w-5 h-5" />,
+        color: 'text-red-600 dark:text-red-400', 
+        bgColor: 'bg-red-100 dark:bg-red-900' 
+      };
+    }
+    
+    // Find subnet details to check active miner count
+    const subnetDetails = findSubnetInfo(netuid);
+    const activeMinerCount = subnetDetails?.active_miners || 0;
+    
+    // Check for burning condition: active miners = 1 and subnet status would normally be active
+    if (activeMinerCount === 1) {
+      return { 
+        status: 'Burning', 
+        icon: <FaFire className="w-5 h-5" />,
+        color: 'text-orange-600 dark:text-orange-400', 
+        bgColor: 'bg-orange-100 dark:bg-orange-900' 
+      };
+    }
+    
+    // Default to active status
+    return { 
+      status: 'Active', 
+      icon: <GrStatusGood className="w-5 h-5" />,
+      color: 'text-green-600 dark:text-green-400', 
+      bgColor: 'bg-green-100 dark:bg-green-900' 
+    };
+  };
+
+  // Function to format price based on currency selection
+  const formatPrice = (subnetPrice: string | number) => {
+    if (!subnetPrice || !taoPrice) return "N/A";
+    
+    const price = typeof subnetPrice === 'string' ? parseFloat(subnetPrice) : subnetPrice;
+    
+    if (showUSD) {
+      const usdPrice = price * taoPrice;
+      return `$${usdPrice.toFixed(2)}`;
+    } else {
+      return `${price} TAO`;
+    }
+  };
+
+  const formatRegPrice = (subnetPrice: string | number) => {
+    if (!subnetPrice || !taoPrice) return "N/A";
+    
+    const price = typeof subnetPrice === 'string' ? parseFloat(subnetPrice) : subnetPrice;
+    
+    if (showAlphaUSD) {
+      const usdPrice = price * taoPrice;
+      return `$${usdPrice.toFixed(2)}`;
+    } else {
+      return `${price} TAO`;
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center text-gray-500 mt-10">Loading dashboard...</div>;
+  }
 
   return (
-    <div className="flex flex-col w-full space-y-5  md:space-y-20">
-      <div className="middle py-5 md:py-10 flex  border-b-[0.5px] border-[#1a1a1a]">
-        <div className="flex px-5 md:px-20 justify-between w-full ">
-          <div className="flex flex-col space-y-8 items-start">
-            <div className=" flex space-x-3 align-middle items-center">
-              <BsArrowLeft size = "1em" />
-              <span className="text-gray-400 text-sm ">Back</span>
-            </div>
-            <div className="flex flex-col space-y-4">
-              <h2 className="font-bold text-gray-100 text-sm md:text-xl">RDO Landing Page</h2>
-              <span className="text-sm text-gray-400">6.9k Forks</span>
-            </div>
-          </div>
-          <div className="flex space-x-4 pl-10 py-10 md:p-10 items-center justify-end">
-            <span className="flex items-center align-middle  rounded-xl border-[0.5px] border-gray-500 text-gray-50 font-bold px-2 py-1">
-              <BsFlag size = "1em" />
-            </span>
-            <button className="bg-gray-200 rounded-xl p-2 text-gray-900 text-ls">Open In</button>
-          </div>
+    <div className="p-6 w-full">
+      <h1 className="text-2xl font-bold mb-6">Subnet Status Dashboard</h1>
+      
+      {taoStatus.length === 0 ? (
+        <div className="text-center text-gray-500 mt-10">No subnet data available</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  NO
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Subnet Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Subnet Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Net UID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-3">
+                    <span>Alpha Price</span>
+                    <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                      <button 
+                        onClick={() => setShowUSD(false)}
+                        className={`w-15 px-3 py-1 text-xs hover:cursor-pointer font-medium transition-colors ${
+                          !showUSD 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
+                        }`}
+                      >
+                        TAO
+                      </button>
+                      <button 
+                        onClick={() => setShowUSD(true)}
+                        className={`w-15 px-3 py-1 text-xs hover:cursor-pointer font-medium transition-colors ${
+                          showUSD 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
+                        }`}
+                      >
+                        $
+                      </button>
+                    </div>
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-3">
+                    <span>REG PRICE</span>
+                    <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                      <button 
+                        onClick={() => setShowAlphaUSD(false)}
+                        className={`w-15 px-3 py-1 text-xs hover:cursor-pointer font-medium transition-colors ${
+                          !showAlphaUSD 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
+                        }`}
+                      >
+                        TAO
+                      </button>
+                      <button 
+                        onClick={() => setShowAlphaUSD(true)}
+                        className={`w-15 px-3 py-1 text-xs hover:cursor-pointer font-medium transition-colors ${
+                          showAlphaUSD 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
+                        }`}
+                      >
+                        $
+                      </button>
+                    </div>
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Active Validator
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Active Miner
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {taoStatus.map((subnet, index) => {
+                const subnetDetails = findSubnetInfo(subnet.netuid);
+                const statusInfo = getStatus(subnet.name, subnet.netuid);
+                
+                return (
+                  <tr key={`subnet-${index}-${subnet.netuid}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {subnet.name || "Unknown"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className={`inline-flex items-center justify-center px-3 py-2 rounded-full ${statusInfo.bgColor} ${statusInfo.color}`}>
+                        {statusInfo.icon}
+                        <span className="ml-2 text-xs font-semibold">
+                          {statusInfo.status}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {subnet.netuid}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {formatPrice(subnet.price)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {subnetDetails ? formatRegPrice(subnetDetails.neuron_registration_cost/(1000000000) || "N/A") : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {subnetDetails ? (subnetDetails.active_validators || "0") : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {subnetDetails ? (subnetDetails.active_miners || "0") : "N/A"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      </div>
-      <div className="dashboard px-5  md:px-20">
-          <div className="flex flex-col shadow-sm border border-[#1a1a1a] rounded-t-xl h-fit">
-            <div className="w-full bg-[#0f0f0f] rounded-t-xl px-4 py-2 flex items-center justify-between ">
-              <div className="flex items-center gap-2 text-gray-400">
-                <ArrowLeft size={14} />
-                <ArrowRight size={14} />
-                <RefreshCw size={14} />
-              </div>
-              {/* <div className="bg-[#1f1f1f] rounded-full px-4 py-1 text-gray-300 text-sm w-1/2 text-left">
-                /
-              </div> */}
-              <input
-                type="text"
-                value={urlPath}
-                onChange={(e) => setUrlPath(e.target.value)}
-                className="bg-[#1f1f1f] rounded-full px-4 py-1 text-gray-300 text-sm w-1/2 text-left focus:outline-none"
-              />
-              <div className="flex items-center gap-2 text-gray-400">
-                <Copy size={14} />
-                <Maximize2 size={14} />
-              </div>
-            </div>
-            <nav className="w-full px-6 py-4 flex justify-between items-center bg-black text-white">
-              <div className="flex items-center gap-2">
-                <div className="bg-white text-black w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
-                  R
-                </div>
-                <span className="text-sm md:text-lg font-semibold">RDO</span>
-              </div>
-
-              {/* Center Nav */}
-              <ul className="hidden md:flex items-center gap-2 md:gap-8 text-gray-300 text-sm">
-                <li onClick={() => setUrlPath('/trade')} className="hover:text-white cursor-pointer">Trade</li>
-                <li onClick={() => setUrlPath('/portfolio')} className="hover:text-white cursor-pointer">Portfolio</li>
-                <li onClick={() => setUrlPath('/market')} className="hover:text-white cursor-pointer">Market</li>
-              </ul>
-
-              {/* Right Side */}
-              <div className="flex items-center gap-4">
-                <button onClick={() => setDarkMode(!darkMode)}>
-                  {darkMode ? <Sun className="w-4 h-4 text-gray-300" /> : <Moon className="w-4 h-4 text-gray-300" />}
-                </button>
-                <button className="text-sm text-gray-300 hover:text-white">Log in</button>
-                <button className="bg-white text-black rounded-full px-4 py-1 text-sm font-semibold hover:opacity-90 transition">
-                  Get Started →
-                </button>
-              </div>
-              <button
-                    className="md:hidden text-gray-100 md:text-white"
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
-                    {mobileMenuOpen ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    )}
-                    </svg>
-                </button>
-            </nav>
-            {mobileMenuOpen && (
-            <div className="md:hidden bg-gray-100 md:bg-[#000C26] py-4 px-4 text-[14px] rounded-2xl">
-                <nav className="flex flex-col space-y-4">
-                {navigationList.map(({text, href, id}) => (
-                    <Link
-                    key={id}
-                    href={href}
-                    className={`text-gray-900 md:text-gray-300 hover:bg-gray-300 md:hover:bg-gray-800 cursor-pointer transition-colors 
-                        ${pathname === href ? `rounded-r-2xl p-2 text-gray-700 md:text-white border-l-2 border-[#1a1a1a] bg-gray-800' ${id === 1 ? 'text-[#60EBEB]' : 'text-gray-700 md:text-white'}` : 'p-2 rounded-2xl' }
-                        `}
-                    onClick={() => 
-                      {
-                        setUrlPath(href)
-                        setMobileMenuOpen(false)}}
-                    >
-                    {text}
-                    </Link>
-                ))}
-                </nav>
-            </div>
-            )}
-            <div className="bg-black text-white p-6 rounded-xl shadow-md w-full md:px-30">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-sm md:text-xl font-bold">BTC/USD</h2>
-                <span className="text-yellow-400 text-sm md:text-lg font-semibold">$48,200</span>
-              </div>
-
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={data}>
-                  <CartesianGrid stroke="#333" vertical={false} />
-                  <XAxis dataKey="time" stroke="#888" />
-                  <YAxis stroke="#888" domain={['auto', 'auto']} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#222', borderColor: '#444' }}
-                    labelStyle={{ color: '#aaa' }}
-                    itemStyle={{ color: '#ffd700' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="price"
-                    stroke="#FFD700"
-                    strokeWidth={3}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-      </div>
+      )}
     </div>
   );
 }
