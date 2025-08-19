@@ -2,12 +2,15 @@
 import { TaoStatsClient } from "@taostats/sdk";
 
 const client = new TaoStatsClient({
-  apiKey: "tao-189e022d-545a-4339-954d-221e968c87bc:3bb71fa8",
+  apiKey: "tao-329fde6c-ca59-467c-a374-9a5500ec8e68:51e443b2",
 });
 
 export async function GET() {
   try {
-    const price = await client.subnets.getSubnets();
+    // const params = {
+    //   netuid: 1, // Replace with the desired subnet ID
+    // };
+    const price = await client.subnets.getCurrentSubnetPools();
     return new Response(JSON.stringify(price), {
       status: 200,
       headers: { "Content-Type": "application/json" },
