@@ -529,7 +529,7 @@ export default function Dashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   <div className="flex items-center space-x-3">
                     <span>Subnet Name</span>
-                    <button className="hover:cursor-pointer text-white" onClick={() => requestSort('name')}>
+                    <button className="hover:cursor-pointer text-green-200" onClick={() => requestSort('name')}>
                       <FaArrowDownShortWide className="w-5 h-5" />
                     </button>
                   </div>
@@ -537,7 +537,7 @@ export default function Dashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   <div className="flex items-center space-x-3">
                     <span>Subnet Status</span>
-                    <button className="hover:cursor-pointer text-white" onClick={() => requestSort('status')}>
+                    <button className="hover:cursor-pointer text-green-200" onClick={() => requestSort('status')}>
                       <FaArrowDownShortWide className="w-5 h-5" />
                     </button>
                   </div>
@@ -545,7 +545,7 @@ export default function Dashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   <div className="flex items-center space-x-3">
                     <span>Burning tao(24h)</span>
-                    <button className="hover:cursor-pointer text-white" onClick={() => requestSort('status')}>
+                    <button className="hover:cursor-pointer text-green-200" onClick={() => requestSort('status')}>
                       <FaArrowDownShortWide className="w-5 h-5" />
                     </button>
                   </div>
@@ -553,7 +553,7 @@ export default function Dashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   <div className="flex items-center space-x-3">
                     <span>Net UID</span>
-                    <button className="hover:cursor-pointer text-white" onClick={() => requestSort('netuid')}>
+                    <button className="hover:cursor-pointer text-green-200" onClick={() => requestSort('netuid')}>
                       <FaArrowDownShortWide className="w-5 h-5" />
                     </button>
                   </div>
@@ -583,7 +583,7 @@ export default function Dashboard() {
                         $
                       </button>
                     </div>
-                    <button className="hover:cursor-pointer text-white" onClick={() => requestSort('price')}>
+                    <button className="hover:cursor-pointer text-green-200" onClick={() => requestSort('price')}>
                       <FaArrowDownShortWide className="w-5 h-5" />
                     </button>
                   </div>
@@ -615,14 +615,14 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   <div className="flex items-center space-x-3">
                     <span>Burn Rate (%)</span>
                     <button className="hover:cursor-pointer text-white" onClick={() => requestSort('burn_rate')}>
                       <FaArrowDownShortWide className="w-5 h-5" />
                     </button>
                   </div>
-                </th>
+                </th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Active Validator
                 </th>
@@ -675,12 +675,12 @@ export default function Dashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {subnetDetails ? formatRegPrice(subnetDetails.neuron_registration_cost/(1000000000) || "N/A") : "N/A"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       <div className="flex items-center space-x-2">
                         <FaFire className="w-4 h-4 text-orange-500" />
                         <span className="font-medium">{calculateBurnRate(subnet)}</span>
                       </div>
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {subnetDetails ? (subnetDetails.active_validators || "0") : "N/A"}
                     </td>
