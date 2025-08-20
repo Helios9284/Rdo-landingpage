@@ -615,14 +615,14 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   <div className="flex items-center space-x-3">
                     <span>Burn Rate (%)</span>
                     <button className="hover:cursor-pointer text-white" onClick={() => requestSort('burn_rate')}>
                       <FaArrowDownShortWide className="w-5 h-5" />
                     </button>
                   </div>
-                </th> */}
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Active Validator
                 </th>
@@ -638,8 +638,17 @@ export default function Dashboard() {
                 const globalIndex = startIndex + index + 1; // Calculate global index across all pages
                 const burningTao = parseFloat(subnet.recycled_24_hours) / 1e9;
                 
+                const handleRowClick = () => {
+                  window.open(`https://taostats.io/subnets/${subnet.netuid}/chart`, '_blank');
+                };
+
                 return (
-                  <tr key={`subnet-${index}-${subnet.netuid}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <tr 
+                    key={`subnet-${index}-${subnet.netuid}`} 
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={handleRowClick}
+                    title={`View ${subnet.name || 'Subnet ' + subnet.netuid} dashboard on TaoStats`}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {globalIndex}
                     </td>
@@ -666,12 +675,12 @@ export default function Dashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {subnetDetails ? formatRegPrice(subnetDetails.neuron_registration_cost/(1000000000) || "N/A") : "N/A"}
                     </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       <div className="flex items-center space-x-2">
                         <FaFire className="w-4 h-4 text-orange-500" />
                         <span className="font-medium">{calculateBurnRate(subnet)}</span>
                       </div>
-                    </td> */}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {subnetDetails ? (subnetDetails.active_validators || "0") : "N/A"}
                     </td>
