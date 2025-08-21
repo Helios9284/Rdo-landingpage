@@ -303,7 +303,7 @@ export default function Dashboard() {
             console.log(`Found ${statusChanges.length} status changes:`, statusChanges);
             
             // Add alerts for status changes
-            setStatusChangeAlerts(prev => [...statusChanges, ...prev].slice(0, 50));
+            setStatusChangeAlerts(prev => [...statusChanges, ...prev]);
             
             // Update transition counts
             updateTransitionCounts(statusChanges);
@@ -324,8 +324,8 @@ export default function Dashboard() {
         console.log('Status updated:', newHistoryData);
         
         // Update current data in state
-        setTaoStatus(currentData.data.data);
-        setSubnetInfo(currentSubnetInfo.data.data);
+        // setTaoStatus(currentData.data.data);
+        // setSubnetInfo(currentSubnetInfo.data.data);
         
       } catch (error) {
         console.error('Error during status check:', error);
@@ -410,11 +410,11 @@ export default function Dashboard() {
         console.log(`Found ${statusChanges.length} status changes:`, statusChanges);
         
         if (statusChanges.length > 0) {
-          setStatusChangeAlerts(prev => [...statusChanges, ...prev].slice(0, 50));
+          setStatusChangeAlerts(prev => [...statusChanges, ...prev]);
           updateTransitionCounts(statusChanges);
-        } else if (statusChangeAlerts.length === 0) {
+        } else if (statusChanges.length === 0) {
           setStatusChangeAlerts([]);
-          console.log('No status changes detected');
+          console.log('No status changes detected', statusChangeAlerts.length);
         }
       }
       
@@ -423,9 +423,9 @@ export default function Dashboard() {
         subnets: currentSnapshot
       };
       
-      saveStatusToLocalStorage(newHistoryData);
-      setTaoStatus(currentData.data.data);
-      setSubnetInfo(currentSubnetInfo.data.data);
+      // saveStatusToLocalStorage(newHistoryData);
+      // setTaoStatus(currentData.data.data);
+      // setSubnetInfo(currentSubnetInfo.data.data);
       setLastStatusCheck(new Date());
       
     } catch (error) {
@@ -443,37 +443,6 @@ export default function Dashboard() {
       subnets: currentSnapshot
     };
     downloadJsonFile(historyData);
-  };
-
-  // Function to load status from uploaded JSON file
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const data: StatusHistoryFile = JSON.parse(content);
-        console.log('Parsed file content:----------', data);
-        
-        if (data.subnets && Array.isArray(data.subnets)) {
-          saveStatusToLocalStorage(data);
-          setJsonFileStatus('ready');
-          console.log('Status history loaded from file:', data);
-          alert('Status history loaded successfully!');
-        } else {
-          throw new Error('Invalid file format');
-        }
-      } catch (error) {
-        console.error('Error parsing uploaded file:', error);
-        alert('Error: Invalid JSON file format');
-      }
-    };
-    reader.readAsText(file);
-    
-    // Reset file input
-    event.target.value = '';
   };
 
   const formatPrice = (subnetPrice: string | number) => {
@@ -775,9 +744,9 @@ export default function Dashboard() {
                   </p>
                 ) : (
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    Subnet {alert.netuid} ({alert.oldName} → {alert.newName}): Status changed from{' '}
-                    <span className="font-bold">{alert.oldStatus}</span> to{' '}
-                    <span className="font-bold">{alert.newStatus}</span>
+                    Subnet {alert.netuid} ({alert.oldName} → {alert.newName}): Name changed from{' '}
+                    <span className="font-bold">{alert.oldName}</span> to{' '}
+                    <span className="font-bold">{alert.newName}</span>
                   </p>
                 )}
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
@@ -792,11 +761,11 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-      ) : (
-        <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded text-center text-gray-600 dark:text-gray-300">
-          There is no change
+      ) : ((statusChangeAlerts.length === 0 && showAlerts) ? (
+        <div className="mb-6 p-3 border-l-4 rounded-r border-green-500 bg-gray-100 dark:bg-gray-700 rounded text-center text-gray-600 dark:text-gray-300">
+          There are no recent status changes
         </div>
-      )}
+      ) : null)}
 
       {/* Show alerts button when hidden */}
       {!showAlerts && statusChangeAlerts.length > 0 && (
