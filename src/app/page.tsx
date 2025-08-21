@@ -593,7 +593,7 @@ export default function Dashboard() {
           )}
           
           {/* File Operations */}
-          <div className="flex space-x-2">
+          {/* <div className="flex space-x-2">
             <input
               type="file"
               accept=".json"
@@ -613,7 +613,7 @@ export default function Dashboard() {
             >
               Save JSON
             </button>
-          </div>
+          </div> */}
           
           <button
             onClick={performManualStatusCheck}
