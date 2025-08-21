@@ -31,6 +31,17 @@ interface StatusTransitionCounts {
   'Dead → Burning': number;
 }
 
+interface SubnetStatusSnapshot {
+  netuid: number;
+  name: string;
+  status: string;
+}
+
+interface StatusHistoryFile {
+  lastUpdate: string;
+  subnets: SubnetStatusSnapshot[];
+}
+
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [taoStatus, setTaoStatus] = useState<any[]>([]);
@@ -41,13 +52,13 @@ export default function Dashboard() {
   const [showAlphaUSD, setShowAlphaUSD] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
   
-  // Status change detection
-  const [previousStatuses, setPreviousStatuses] = useState<Map<number, string>>(new Map());
+  // Status change detection with JSON file
   const [statusChangeAlerts, setStatusChangeAlerts] = useState<StatusChange[]>([]);
   const [showAlerts, setShowAlerts] = useState(true);
-  const isInitialLoad = useRef(true);
-
-  // New state for navigation analytics
+  const [lastStatusCheck, setLastStatusCheck] = useState<Date | null>(null);
+  const [jsonFileStatus, setJsonFileStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  
+  // Navigation analytics
   const [currentStatusCounts, setCurrentStatusCounts] = useState<StatusCounts>({
     active: 0,
     burning: 0,
@@ -64,41 +75,97 @@ export default function Dashboard() {
     'Dead → Burning': 0
   });
 
-  useEffect(() => {
-    async function fetchPrice() {
-      try {
-        const [res, taoPriceRes, subnetInfoRes, subnetPool] = await Promise.all([
-          fetch("/api/subnet-status"),
-          fetch("/api/tao-price"),
-          fetch("/api/subnet-info"),
-          fetch("/api/subnet-pool")
-        ]);
-        
-        const data = await res.json();
-        setTaoStatus(data.data.data);
-        // console.log("TAO Status Data:", data.data.data);
-        const priceData = await taoPriceRes.json();
-        setTaoPrice(priceData.data.data[0].price);
+  const isInitialLoad = useRef(true);
+  const statusCheckInterval = useRef<NodeJS.Timeout | null>(null);
 
-        const subnetData = await subnetInfoRes.json();
-        console.log("Subnet Info:", subnetData.data.data);
-        setSubnetInfo(subnetData.data.data);
+  // JSON file operations using browser File API and local storage fallback
+  const JSON_FILE_NAME = 'subnet_status_history.json';
 
-        const subnetPoolData = await subnetPool.json();
-        console.log("Subnet Pool Data:", subnetPoolData.data.data);
-        setSubnetPool(subnetPoolData.data.data);
-      } catch (err) {
-        console.error("Failed to fetch data:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPrice();
+  const downloadJsonFile = (data: StatusHistoryFile) => {
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     
-    const interval = setInterval(fetchPrice, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = JSON_FILE_NAME;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const saveStatusToLocalStorage = (data: StatusHistoryFile) => {
+    try {
+      const jsonString = JSON.stringify(data);
+      // Store in memory variable since localStorage is not available
+      // (window as any).subnetStatusHistory = jsonString;
+      localStorage.setItem('subnetStatusHistory', jsonString);
+      console.log('Status history saved to memory');
+    } catch (error) {
+      console.error('Error saving to memory:', error);
+    }
+  };
+
+  const loadStatusFromLocalStorage = (): StatusHistoryFile | null => {
+    try {
+      // const stored = (window as any).subnetStatusHistory;
+      const stored = localStorage.getItem('subnetStatusHistory');
+      console.log('Loading status history from memory-----------------------:', stored);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading from memory:', error);
+      return null;
+    }
+  };
+
+  const createCurrentSnapshot = (taoStatusData: any[], subnetInfoData: any[]): SubnetStatusSnapshot[] => {
+    return taoStatusData.map(subnet => ({
+      netuid: subnet.netuid,
+      name: subnet.name || "Unknown",
+      status: getStatus(subnet.name, subnet.netuid, subnetInfoData).status
+    }));
+  };
+
+  const compareStatuses = (
+    currentSnapshots: SubnetStatusSnapshot[], 
+    previousSnapshots: SubnetStatusSnapshot[]
+  ): StatusChange[] => {
+    const changes: StatusChange[] = [];
+    const previousMap = new Map(previousSnapshots.map(s => [s.netuid, s]));
+
+    currentSnapshots.forEach(current => {
+      const previous = previousMap.get(current.netuid);
+      if (previous && previous.status !== current.status) {
+        changes.push({
+          id: `${current.netuid}-${Date.now()}`,
+          netuid: current.netuid,
+          subnetName: current.name,
+          oldStatus: previous.status,
+          newStatus: current.status,
+          timestamp: new Date()
+        });
+      }
+    });
+
+    return changes;
+  };
+
+  const updateTransitionCounts = (changes: StatusChange[]) => {
+    const newCounts = { ...statusTransitionCounts };
+    
+    changes.forEach(change => {
+      const transitionKey = `${change.oldStatus} → ${change.newStatus}` as keyof StatusTransitionCounts;
+      if (transitionKey in newCounts) {
+        newCounts[transitionKey]++;
+      }
+    });
+    
+    setStatusTransitionCounts(newCounts);
+  };
 
   const findSubnetInfo = (netuid: number) => {
     return subnetInfo.find(info => info.netuid === netuid);
@@ -120,7 +187,9 @@ export default function Dashboard() {
     return `${((burnedTAO / totalAlpha) * 100).toFixed(2)}%`;
   };
 
-  const getStatus = (subnetName: string | null | undefined, netuid: number) => {
+  const getStatus = (subnetName: string | null | undefined, netuid: number, subnetInfoData?: any[]) => {
+    const infoData = subnetInfoData || subnetInfo;
+    
     if (!subnetName || subnetName.toLowerCase() === 'unknown') {
       return { 
         status: 'Dead', 
@@ -130,7 +199,7 @@ export default function Dashboard() {
       };
     }
     
-    const subnetDetails = findSubnetInfo(netuid);
+    const subnetDetails = infoData.find(info => info.netuid === netuid);
     const activeMinerCount = subnetDetails?.active_miners || 0;
     
     if (activeMinerCount === 1) {
@@ -149,6 +218,127 @@ export default function Dashboard() {
       bgColor: 'bg-green-100 dark:bg-green-900' 
     };
   };
+
+  // Initial data fetch
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [res, taoPriceRes, subnetInfoRes, subnetPoolRes] = await Promise.all([
+          fetch("/api/subnet-status"),
+          fetch("/api/tao-price"),
+          fetch("/api/subnet-info"),
+          fetch("/api/subnet-pool")
+        ]);
+        
+        const data = await res.json();
+        const priceData = await taoPriceRes.json();
+        const subnetInfoData = await subnetInfoRes.json();
+        const subnetPoolData = await subnetPoolRes.json();
+
+        setTaoStatus(data.data.data);
+        setTaoPrice(priceData.data.data[0].price);
+        setSubnetInfo(subnetInfoData.data.data);
+        setSubnetPool(subnetPoolData.data.data);
+
+        // On initial load, create the baseline status
+        if (isInitialLoad.current) {
+          const currentSnapshot = createCurrentSnapshot(data.data.data, subnetInfoData.data.data);
+          const historyData: StatusHistoryFile = {
+            lastUpdate: new Date().toISOString(),
+            subnets: currentSnapshot
+          };
+          
+          saveStatusToLocalStorage(historyData);
+          setJsonFileStatus('ready');
+          setLastStatusCheck(new Date());
+          isInitialLoad.current = false;
+          
+          console.log('Initial subnet status saved:', historyData);
+        }
+
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+        setJsonFileStatus('error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // 5-minute status check and comparison
+  useEffect(() => {
+    if (isInitialLoad.current || jsonFileStatus !== 'ready') {
+      return;
+    }
+
+    const performStatusCheck = async () => {
+      try {
+        console.log('Performing 5-minute status check...');
+        
+        // Fetch current data
+        const [res, subnetInfoRes] = await Promise.all([
+          fetch("/api/subnet-status"),
+          fetch("/api/subnet-info")
+        ]);
+        
+        const currentData = await res.json();
+        const currentSubnetInfo = await subnetInfoRes.json();
+        
+        // Read previous status from memory storage
+        const previousHistory = loadStatusFromLocalStorage();
+        
+        // Create current snapshot
+        const currentSnapshot = createCurrentSnapshot(currentData.data.data, currentSubnetInfo.data.data);
+        
+        // Compare with previous status if available
+        if (previousHistory && previousHistory.subnets.length > 0) {
+          const statusChanges = compareStatuses(currentSnapshot, previousHistory.subnets);
+          
+          if (statusChanges.length > 0) {
+            console.log(`Found ${statusChanges.length} status changes:`, statusChanges);
+            
+            // Add alerts for status changes
+            setStatusChangeAlerts(prev => [...statusChanges, ...prev].slice(0, 50));
+            
+            // Update transition counts
+            updateTransitionCounts(statusChanges);
+          } else {
+            console.log('No status changes detected');
+          }
+        }
+        
+        // Always update the storage with current status
+        const newHistoryData: StatusHistoryFile = {
+          lastUpdate: new Date().toISOString(),
+          subnets: currentSnapshot
+        };
+        
+        saveStatusToLocalStorage(newHistoryData);
+        setLastStatusCheck(new Date());
+        
+        console.log('Status updated:', newHistoryData);
+        
+        // Update current data in state
+        setTaoStatus(currentData.data.data);
+        setSubnetInfo(currentSubnetInfo.data.data);
+        
+      } catch (error) {
+        console.error('Error during status check:', error);
+      }
+    };
+
+    // Set up 5-minute interval
+    statusCheckInterval.current = setInterval(performStatusCheck, 5 * 60 * 1000); // 5 minutes
+
+    // Cleanup function
+    return () => {
+      if (statusCheckInterval.current) {
+        clearInterval(statusCheckInterval.current);
+      }
+    };
+  }, [jsonFileStatus, statusTransitionCounts]);
 
   // Calculate current status counts
   useEffect(() => {
@@ -174,55 +364,6 @@ export default function Dashboard() {
     }
   }, [taoStatus, subnetInfo]);
 
-  // Effect to detect status changes and update transition counts
-  useEffect(() => {
-    if (taoStatus.length > 0 && subnetInfo.length > 0) {
-      const currentStatuses = new Map<number, string>();
-      const newAlerts: StatusChange[] = [];
-
-      // Get current status for each subnet
-      taoStatus.forEach(subnet => {
-        const currentStatus = getStatus(subnet.name, subnet.netuid).status;
-        currentStatuses.set(subnet.netuid, currentStatus);
-
-        // Check for status changes (skip on initial load)
-        if (!isInitialLoad.current) {
-          const previousStatus = previousStatuses.get(subnet.netuid);
-          if (previousStatus && previousStatus !== currentStatus) {
-            const alert: StatusChange = {
-              id: `${subnet.netuid}-${Date.now()}`,
-              netuid: subnet.netuid,
-              subnetName: subnet.name || "Unknown",
-              oldStatus: previousStatus,
-              newStatus: currentStatus,
-              timestamp: new Date()
-            };
-            newAlerts.push(alert);
-
-            // Update transition counts
-            const transitionKey = `${previousStatus} → ${currentStatus}` as keyof StatusTransitionCounts;
-            if (transitionKey in statusTransitionCounts) {
-              setStatusTransitionCounts(prev => ({
-                ...prev,
-                [transitionKey]: prev[transitionKey] + 1
-              }));
-            }
-          }
-        }
-      });
-
-      // Update previous statuses
-      setPreviousStatuses(currentStatuses);
-      
-      // Add new alerts to the list
-      if (newAlerts.length > 0) {
-        setStatusChangeAlerts(prev => [...newAlerts, ...prev].slice(0, 50));
-      }
-
-      isInitialLoad.current = false;
-    }
-  }, [taoStatus, subnetInfo, statusTransitionCounts]);
-
   // Function to dismiss an alert
   const dismissAlert = (alertId: string) => {
     setStatusChangeAlerts(prev => prev.filter(alert => alert.id !== alertId));
@@ -243,6 +384,90 @@ export default function Dashboard() {
       'Dead → Active': 0,
       'Dead → Burning': 0
     });
+  };
+
+  // Manual status check function
+  const performManualStatusCheck = async () => {
+    setLoading(true);
+    try {
+      const [res, subnetInfoRes] = await Promise.all([
+        fetch("/api/subnet-status"),
+        fetch("/api/subnet-info")
+      ]);
+      
+      const currentData = await res.json();
+      const currentSubnetInfo = await subnetInfoRes.json();
+      
+      const previousHistory = loadStatusFromLocalStorage();
+      console.log('Performing manual status check...');
+      const currentSnapshot = createCurrentSnapshot(currentData.data.data, currentSubnetInfo.data.data);
+      
+      if (previousHistory && previousHistory.subnets.length > 0) {
+        const statusChanges = compareStatuses(currentSnapshot, previousHistory.subnets);
+        console.log(`Found ${statusChanges.length} status changes:`, statusChanges);
+        
+        if (statusChanges.length > 0) {
+          setStatusChangeAlerts(prev => [...statusChanges, ...prev].slice(0, 50));
+          updateTransitionCounts(statusChanges);
+        }
+      }
+      
+      const newHistoryData: StatusHistoryFile = {
+        lastUpdate: new Date().toISOString(),
+        subnets: currentSnapshot
+      };
+      
+      saveStatusToLocalStorage(newHistoryData);
+      setTaoStatus(currentData.data.data);
+      setSubnetInfo(currentSubnetInfo.data.data);
+      setLastStatusCheck(new Date());
+      
+    } catch (error) {
+      console.error('Manual status check failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to download current status as JSON file
+  const downloadCurrentStatus = () => {
+    const currentSnapshot = createCurrentSnapshot(taoStatus, subnetInfo);
+    const historyData: StatusHistoryFile = {
+      lastUpdate: new Date().toISOString(),
+      subnets: currentSnapshot
+    };
+    downloadJsonFile(historyData);
+  };
+
+  // Function to load status from uploaded JSON file
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data: StatusHistoryFile = JSON.parse(content);
+        console.log('Parsed file content:----------', data);
+        
+        if (data.subnets && Array.isArray(data.subnets)) {
+          saveStatusToLocalStorage(data);
+          setJsonFileStatus('ready');
+          console.log('Status history loaded from file:', data);
+          alert('Status history loaded successfully!');
+        } else {
+          throw new Error('Invalid file format');
+        }
+      } catch (error) {
+        console.error('Error parsing uploaded file:', error);
+        alert('Error: Invalid JSON file format');
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
   };
 
   const formatPrice = (subnetPrice: string | number) => {
@@ -358,7 +583,54 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 w-full">
-      <h1 className="text-2xl font-bold mb-6 text-gray-950">Subnet Status Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-950">Subnet Status Dashboard</h1>
+        <div className="flex items-center space-x-4">
+          {lastStatusCheck && (
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Last check: {lastStatusCheck.toLocaleTimeString()}
+            </div>
+          )}
+          
+          {/* File Operations */}
+          <div className="flex space-x-2">
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="json-upload"
+            />
+            <label
+              htmlFor="json-upload"
+              className="px-3 py-2 bg-green-500 text-white text-sm rounded hover:bg-green-600 cursor-pointer"
+            >
+              Load JSON
+            </label>
+            <button
+              onClick={downloadCurrentStatus}
+              className="px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600"
+            >
+              Save JSON
+            </button>
+          </div>
+          
+          <button
+            onClick={performManualStatusCheck}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            disabled={loading}
+          >
+            Manual Check
+          </button>
+          <div className={`px-3 py-1 rounded text-xs font-medium ${
+            jsonFileStatus === 'ready' ? 'bg-green-100 text-green-800' :
+            jsonFileStatus === 'error' ? 'bg-red-100 text-red-800' :
+            'bg-yellow-100 text-yellow-800'
+          }`}>
+            Status: {jsonFileStatus}
+          </div>
+        </div>
+      </div>
       
       {/* Navigation/Analytics Section */}
       <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -615,14 +887,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  <div className="flex items-center space-x-3">
-                    <span>Burn Rate (%)</span>
-                    <button className="hover:cursor-pointer text-white" onClick={() => requestSort('burn_rate')}>
-                      <FaArrowDownShortWide className="w-5 h-5" />
-                    </button>
-                  </div>
-                </th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Active Validator
                 </th>
@@ -635,8 +899,7 @@ export default function Dashboard() {
               {currentPageData.map((subnet, index) => {
                 const subnetDetails = findSubnetInfo(subnet.netuid);
                 const statusInfo = getStatus(subnet.name, subnet.netuid);
-                const globalIndex = startIndex + index + 1; // Calculate global index across all pages
-                const burningTao = parseFloat(subnet.recycled_24_hours) / 1e9;
+                const globalIndex = startIndex + index + 1;
                 
                 const handleRowClick = () => {
                   window.open(`https://taostats.io/subnets/${subnet.netuid}/chart`, '_blank');
@@ -664,7 +927,7 @@ export default function Dashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                      {subnetDetails.recycled_24_hours/ 1e9 || "N/A"}
+                      {subnetDetails?.recycled_24_hours ? (subnetDetails.recycled_24_hours / 1e9).toFixed(4) : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {subnet.netuid}
@@ -675,12 +938,6 @@ export default function Dashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {subnetDetails ? formatRegPrice(subnetDetails.neuron_registration_cost/(1000000000) || "N/A") : "N/A"}
                     </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                      <div className="flex items-center space-x-2">
-                        <FaFire className="w-4 h-4 text-orange-500" />
-                        <span className="font-medium">{calculateBurnRate(subnet)}</span>
-                      </div>
-                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {subnetDetails ? (subnetDetails.active_validators || "0") : "N/A"}
                     </td>
@@ -695,10 +952,6 @@ export default function Dashboard() {
           
           {/* Pagination Controls */}
           <div className="mt-6 flex items-center justify-center">
-            {/* <div className="text-sm text-gray-700 dark:text-gray-300">
-              Showing {startIndex + 1} to {Math.min(endIndex, sortedTaos.length)} of {sortedTaos.length} subnets
-            </div> */}
-            
             <div className="flex items-center space-x-2">
               {/* Previous Button */}
               <button
