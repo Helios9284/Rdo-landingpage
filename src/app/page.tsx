@@ -10,6 +10,8 @@ interface StatusChange {
   id: string;
   netuid: number;
   subnetName: string;
+  oldName: string;
+  newName: string;
   oldStatus: string;
   newStatus: string;
   timestamp: Date;
@@ -111,7 +113,6 @@ export default function Dashboard() {
     try {
       // const stored = (window as any).subnetStatusHistory;
       const stored = localStorage.getItem('subnetStatusHistory');
-      console.log('Loading status history from memory-----------------------:', stored);
       if (stored) {
         return JSON.parse(stored);
       }
@@ -144,6 +145,8 @@ export default function Dashboard() {
           id: `${current.netuid}-${Date.now()}`,
           netuid: current.netuid,
           subnetName: current.name,
+          oldName: previous.name,
+          newName: current.name,
           oldStatus: previous.status,
           newStatus: current.status,
           timestamp: new Date()
@@ -409,6 +412,9 @@ export default function Dashboard() {
         if (statusChanges.length > 0) {
           setStatusChangeAlerts(prev => [...statusChanges, ...prev].slice(0, 50));
           updateTransitionCounts(statusChanges);
+        } else if (statusChangeAlerts.length === 0) {
+          setStatusChangeAlerts([]);
+          console.log('No status changes detected');
         }
       }
       
@@ -728,7 +734,7 @@ export default function Dashboard() {
       </div>
       
       {/* Status Change Alerts */}
-      {statusChangeAlerts.length > 0 && showAlerts && (
+      {(statusChangeAlerts.length > 0 && showAlerts) ? (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -761,6 +767,19 @@ export default function Dashboard() {
                 >
                   ×
                 </button>
+                {alert.newName === alert.oldName ? (
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    Subnet {alert.netuid} ({alert.subnetName}): Status changed from{' '}
+                    <span className="font-bold">{alert.oldStatus}</span> to{' '}
+                    <span className="font-bold">{alert.newStatus}</span>
+                  </p>
+                ) : (
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    Subnet {alert.netuid} ({alert.oldName} → {alert.newName}): Status changed from{' '}
+                    <span className="font-bold">{alert.oldStatus}</span> to{' '}
+                    <span className="font-bold">{alert.newStatus}</span>
+                  </p>
+                )}
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   Subnet {alert.netuid} ({alert.subnetName}): Status changed from{' '}
                   <span className="font-bold">{alert.oldStatus}</span> to{' '}
@@ -772,6 +791,10 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+      ) : (
+        <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded text-center text-gray-600 dark:text-gray-300">
+          There is no change
         </div>
       )}
 
