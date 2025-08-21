@@ -44,6 +44,11 @@ interface StatusHistoryFile {
   subnets: SubnetStatusSnapshot[];
 }
 
+interface ChangedStatusHistoryFile {
+  lastUpdate: string;
+  changes: StatusChange[];
+}
+
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [taoStatus, setTaoStatus] = useState<any[]>([]);
@@ -300,8 +305,10 @@ export default function Dashboard() {
           const statusChanges = compareStatuses(currentSnapshot, previousHistory.subnets);
           
           if (statusChanges.length > 0) {
+            const jsonString = JSON.stringify(statusChanges);
+            localStorage.setItem('changedsubnetStatusHistory', jsonString);
+            console.log('Changed Status history saved to memory');
             console.log(`Found ${statusChanges.length} status changes:`, statusChanges);
-            
             // Add alerts for status changes
             setStatusChangeAlerts(prev => [...statusChanges, ...prev]);
             
@@ -410,8 +417,17 @@ export default function Dashboard() {
         console.log(`Found ${statusChanges.length} status changes:`, statusChanges);
         
         if (statusChanges.length > 0) {
-          setStatusChangeAlerts(prev => [...statusChanges, ...prev]);
-          updateTransitionCounts(statusChanges);
+          const jsonString = JSON.stringify(statusChanges);
+          await localStorage.setItem('changedsubnetStatusHistory', jsonString);
+          console.log('Changed Status history saved to memory');
+          const store = await localStorage.getItem('changedsubnetStatusHistory');
+          if (store) {
+            setStatusChangeAlerts(JSON.parse(store));
+            updateTransitionCounts(statusChanges);
+          } else {
+            console.error('Failed to save status changes to memory');
+          }
+          
         } else if (statusChanges.length === 0) {
           setStatusChangeAlerts([]);
           console.log('No status changes detected', statusChangeAlerts.length);
@@ -423,9 +439,9 @@ export default function Dashboard() {
         subnets: currentSnapshot
       };
       
-      // saveStatusToLocalStorage(newHistoryData);
-      // setTaoStatus(currentData.data.data);
-      // setSubnetInfo(currentSubnetInfo.data.data);
+      saveStatusToLocalStorage(newHistoryData);
+      setTaoStatus(currentData.data.data);
+      setSubnetInfo(currentSubnetInfo.data.data);
       setLastStatusCheck(new Date());
       
     } catch (error) {
@@ -608,7 +624,7 @@ export default function Dashboard() {
       </div>
       
       {/* Navigation/Analytics Section */}
-      <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Current Status Counts */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -700,6 +716,82 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Changed Subnet History
+            </h2>
+          </div>
+          <table className="min-w-full bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr className="">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  NO
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-3">
+                    <span>Subnet Name</span>
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-3">
+                    <span>Net UID</span>
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-3">
+                    <span>Subnet Status</span>
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-3">
+                    <span>Changed Time</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            {statusChangeAlerts.length === 0 ? (          
+                <div className="flex min-w-full text-center text-amber-600 text-sm mt-10">There is no change</div>            
+            ) : (
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {statusChangeAlerts.map((alert, index) => {
+                  return (
+                    <tr key={alert.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {alert.subnetName || "Unknown"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {alert.netuid}
+                      </td>
+                      <td className=" px-6 py-4 whitespace-nowrap text-sm ">
+                        {alert.newName === alert.oldName ? (
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            Subnet {alert.netuid} ({alert.subnetName}): Status changed from{' '}
+                            <span className="font-bold">{alert.oldStatus}</span> to{' '}
+                            <span className="font-bold">{alert.newStatus}</span>
+                          </p>
+                        ) : (
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            Subnet {alert.netuid} ({alert.oldName} → {alert.newName}): Name changed from{' '}
+                            <span className="font-bold">{alert.oldName}</span> to{' '}
+                            <span className="font-bold">{alert.newName}</span>
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {alert.timestamp.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            )}
+          </table>
+        </div>
       </div>
       
       {/* Status Change Alerts */}
@@ -749,11 +841,11 @@ export default function Dashboard() {
                     <span className="font-bold">{alert.newName}</span>
                   </p>
                 )}
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {/* <p className="text-sm font-medium text-gray-900 dark:text-white">
                   Subnet {alert.netuid} ({alert.subnetName}): Status changed from{' '}
                   <span className="font-bold">{alert.oldStatus}</span> to{' '}
                   <span className="font-bold">{alert.newStatus}</span>
-                </p>
+                </p> */}
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {alert.timestamp.toLocaleString()}
                 </p>
