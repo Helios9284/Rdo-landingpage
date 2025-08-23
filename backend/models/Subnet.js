@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-const statusSchema = new Schema({ 
+const subnetSchema  = new Schema({ 
 
     createdAt: { 
         type: Date, 
@@ -22,6 +22,6 @@ const statusSchema = new Schema({
     
 }); 
 
-StatusHistory = mongoose.model('StatusHistory', statusSchema);
+StatusHistory = mongoose.model('Subnet', subnetSchema );
 
 module.exports = StatusHistory;

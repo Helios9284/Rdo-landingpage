@@ -2,7 +2,7 @@
 import { TaoStatsClient } from "@taostats/sdk";
 
 const client = new TaoStatsClient({
-  apiKey: "tao-c7b24870-d840-4bbd-b92a-69726f4a2113:b0ccccde",
+  apiKey: "tao-5559fb49-abe9-43d1-ba61-a36dde299d61:1866259a",
 });
 
 export async function GET() {

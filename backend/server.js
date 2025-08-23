@@ -21,9 +21,9 @@ app.use(bodyParser.urlencoded({
 
 // import router:
 // const routes = require('./routes');
-// const routes = require('./routes');
+const routes = require('./routes');
 
-// app.use('/',routes);
+app.use('/',routes);
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on http://localhost:${PORT}`);
