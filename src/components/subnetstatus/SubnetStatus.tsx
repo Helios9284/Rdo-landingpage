@@ -165,7 +165,7 @@ export const SubnetStatus = () => {
     return (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-200">
               <tr className="">
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500  uppercase tracking-wider">
                   NO
@@ -205,7 +205,7 @@ export const SubnetStatus = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500  uppercase tracking-wider">
                   <div className="flex items-center space-x-3">
                     <span>Alpha Price</span>
-                    <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                    <div className="flex rounded-lg overflow-hidden border border-blue-400 ">
                       <button 
                         onClick={() => setShowUSD(false)}
                         className={`w-15 px-3 py-1 text-xs hover:cursor-pointer font-medium transition-colors ${
@@ -235,7 +235,7 @@ export const SubnetStatus = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500  uppercase tracking-wider">
                   <div className="flex items-center space-x-3">
                     <span>REG PRICE</span>
-                    <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                    <div className="flex rounded-lg overflow-hidden border border-blue-400 ">
                       <button 
                         onClick={() => setShowAlphaUSD(false)}
                         className={`w-15 px-3 py-1 text-xs hover:cursor-pointer font-medium transition-colors ${
@@ -329,7 +329,7 @@ export const SubnetStatus = () => {
                 className={`px-3 py-2 rounded-xl text-sm font-medium ${
                   currentPage === 1
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-600'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    dark:border-gray-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    '
                 }`}
               >
                 Previous
@@ -342,7 +342,7 @@ export const SubnetStatus = () => {
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
                       currentPage === pageNum
                         ? 'bg-blue-500 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    dark:border-gray-600'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    '
                     }`}
                   >
                     {pageNum}
@@ -355,7 +355,7 @@ export const SubnetStatus = () => {
                 className={`px-3 py-2 rounded-xl text-sm font-medium ${
                   currentPage === totalPages
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-600'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    dark:border-gray-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    '
                 }`}
               >
                 Next
