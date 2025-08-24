@@ -4,18 +4,11 @@ import { TbPlaystationX } from "react-icons/tb";
 import { GrStatusGood } from "react-icons/gr";
 import { FaFire } from "react-icons/fa";
 import { FaArrowDownShortWide, FaArrowUpShortWide } from "react-icons/fa6";
-import { FaArrowUp, FaArrowDown, FaArrowRight } from "react-icons/fa";
 import axios from "axios";
 import { BASE_URL } from "../../config/config";
 
 export const SubnetStatus = () => {
 
-    interface StatusCounts {
-        active: number;
-        burning: number;
-        dead: number;
-        total: number;
-    }
 
     interface SubnetStatusSnapshot {
         netuid: number;
@@ -34,7 +27,6 @@ export const SubnetStatus = () => {
         regprice?: number;
     }
 
-    const [taoStatus, setTaoStatus] = useState<any[]>([]);
     const [subnetInfo, setSubnetInfo] = useState<any[]>([]);
     const [subnetStatus, setSubnetStatus] = useState<SubnetStatus[]>([]);
     const isInitialLoad = useRef(true);
@@ -45,13 +37,6 @@ export const SubnetStatus = () => {
     const [sortConfig, setSortConfig] = useState<{key: string, direction: 'ascending' | 'descending'}>({ 
         key: 'netuid', 
         direction: 'ascending' 
-    });
-
-    const [currentStatusCounts, setCurrentStatusCounts] = useState<StatusCounts>({
-        active: 0,
-        burning: 0,
-        dead: 0,
-        total: 0
     });
 
     const getStatus = (subnetName: string | null | undefined, netuid: number, subnetStatus?: any[]) => {
@@ -215,10 +200,6 @@ export const SubnetStatus = () => {
                 const data = await res.json();
                 const subnetInfoData = await subnetInfoRes.json();
                 const priceData = await taoPriceRes.json();
-                console.log("Fetched taoStatus:", data.data.data);
-                console.log("Fetched subnetInfo:", subnetInfoData.data.data);
-
-                setTaoStatus(data.data.data);
                 setSubnetInfo(subnetInfoData.data.data);
                 setTaoPrice(priceData.data.data[0].price);
 

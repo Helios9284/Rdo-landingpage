@@ -41,8 +41,6 @@ export const Header = () =>{
                     {/* <p className='font-bold text-gray-50 text-3xl'>💰 TAO Price: {taoPrice}</p> */}
                 </div>
                 <div className='flex space-x-4'>
-                    <Link href = "/login" className=' text-white border-gray-100 border-[0.5px] px-4 py-2 rounded-xl font-bold text-sm md:text-ls'>Sign In</Link>
-                    <Link href = "/signup" className=' bg-gray-100 text-gray-900 font-bold px-4 py-2 rounded-xl text-sm md:text-ls'>Sign Up</Link>
                     <button  className='hover:text-gray-200 hover:cursor-pointer text-white' 
                         onClick={() => setNotificationOpen(!notificationOpen)}><IoMdNotifications size = "2em"/>
                     </button>
