@@ -28,8 +28,8 @@ export const SubnetStatus = () => {
         netuid: number;
         name: string;
         status: string;
-        activeValidators: number;
-        activeMiners: number;
+        activevalidator: number;
+        activeminer: number;
     }
 
     const [taoStatus, setTaoStatus] = useState<any[]>([]);
@@ -39,6 +39,7 @@ export const SubnetStatus = () => {
     const [loading, setLoading] = useState(true);
     const [showUSD, setShowUSD] = useState(false);
     const [showAlphaUSD, setShowAlphaUSD] = useState(false);
+    const [taoPrice, setTaoPrice] = useState<number | null>(null);
 
     const [currentStatusCounts, setCurrentStatusCounts] = useState<StatusCounts>({
         active: 0,
@@ -47,12 +48,15 @@ export const SubnetStatus = () => {
         total: 0
     });
 
-    const getStatus = (subnetName: string | null | undefined, netuid: number, subnetInfoData?: any[]) => {
-        const infoData = subnetInfoData || subnetInfo;
+    const getStatus = (subnetName: string | null | undefined, netuid: number, subnetStatus?: any[]) => {
+        const infoData = subnetStatus || subnetInfo;
         
         if (!subnetName || subnetName.toLowerCase() === 'unknown') {
         return { 
             status: 'Dead', 
+                icon: <TbPlaystationX className="w-5 h-5" />,
+                color: 'text-red-600 dark:text-red-400', 
+                bgColor: 'bg-red-100 dark:bg-red-900'
         };
         }
         const subnetDetails = infoData.find(info => info.netuid === netuid);
@@ -61,11 +65,17 @@ export const SubnetStatus = () => {
             if (activeMinerCount === 1) {
             return { 
                 status: 'Burning', 
+                icon: <FaFire className="w-5 h-5" />,
+                color: 'text-orange-600 dark:text-orange-400', 
+                bgColor: 'bg-orange-100 dark:bg-orange-900'
             };
             }
             
             return { 
-            status: 'Active', 
+                status: 'Active',
+                icon: <GrStatusGood className="w-5 h-5" />,
+                color: 'text-green-600 dark:text-green-400', 
+                bgColor: 'bg-green-100 dark:bg-green-900'  
             };
     };
 
@@ -84,19 +94,40 @@ export const SubnetStatus = () => {
         });
     };
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
+    // const totalPages = Math.ceil(sortedTaos.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    // const currentPageData = sortedTaos.slice(startIndex, endIndex);
+
+    const formatPrice = (subnetPrice: string | number) => {
+        if (!subnetPrice || !taoPrice) return "N/A";
+        const price = typeof subnetPrice === 'string' ? parseFloat(subnetPrice) : subnetPrice;
+        if (showUSD) {
+        const usdPrice = price * taoPrice;
+        return `$${usdPrice.toFixed(2)}`;
+        } else {
+        return `${price} TAO`;
+        }
+    };
+
     useEffect(() => {
         async function fetchData() {
         try {
-            const [res, subnetInfoRes] = await Promise.all([
+            const [res, subnetInfoRes, taoPriceRes] = await Promise.all([
             fetch("/api/subnet-status"),
             fetch("/api/subnet-info"),
+            fetch("/api/tao-price"),
             ]);
             
             const data = await res.json();
             const subnetInfoData = await subnetInfoRes.json();
+            const priceData = await taoPriceRes.json();
 
             setTaoStatus(data.data.data);
             setSubnetInfo(subnetInfoData.data.data);
+            setTaoPrice(priceData.data.data[0].price);
             // setSubnetPool(subnetPoolData.data.data);
 
             // On initial load, create the baseline status
@@ -129,7 +160,8 @@ export const SubnetStatus = () => {
         }
         updateSubnetStatus();
 
-    }, []);    
+    }, []);  
+      
     return (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
@@ -235,9 +267,9 @@ export const SubnetStatus = () => {
                 </th>
               </tr>
             </thead>
-            {/* <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {currentPageData.map((subnet, index) => {
-                const subnetDetails = findSubnetInfo(subnet.netuid);
+            <tbody className="bg-white  divide-y divide-gray-200 dark:divide-gray-300">
+              {subnetStatus.map((subnet, index) => {
+                // const subnetDetails = findSubnetInfo(subnet.netuid);
                 const statusInfo = getStatus(subnet.name, subnet.netuid);
                 const globalIndex = startIndex + index + 1;
                 
@@ -248,14 +280,14 @@ export const SubnetStatus = () => {
                 return (
                   <tr 
                     key={`subnet-${index}-${subnet.netuid}`} 
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    className="hover:bg-gray-200  cursor-pointer transition-colors"
                     onClick={handleRowClick}
                     title={`View ${subnet.name || 'Subnet ' + subnet.netuid} dashboard on TaoStats`}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ">
                       {globalIndex}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ">
                       {subnet.name || "Unknown"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -266,28 +298,28 @@ export const SubnetStatus = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                      {subnetDetails?.recycled_24_hours ? (subnetDetails.recycled_24_hours / 1e9).toFixed(4) : "N/A"}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ">
+                      {/* {subnetDetails?.recycled_24_hours ? (subnetDetails.recycled_24_hours / 1e9).toFixed(4) : "N/A"} */}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
                       {subnet.netuid}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
-                      {formatPrice(subnet.price)}
+                      {/* {formatPrice(subnet.price)} */}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
-                      {subnetDetails ? formatRegPrice(subnetDetails.neuron_registration_cost/(1000000000) || "N/A") : "N/A"}
+                      {/* {subnetDetails ? formatRegPrice(subnetDetails.neuron_registration_cost/(1000000000) || "N/A") : "N/A"} */}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
-                      {subnetDetails ? (subnetDetails.active_validators || "0") : "N/A"}
+                      {subnet ? (subnet.activevalidator || "0") : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
-                      {subnetDetails ? (subnetDetails.active_miners || "0") : "N/A"}
+                      {subnet ? (subnet.activeminer || "0") : "N/A"}
                     </td>
                   </tr>
                 );
               })}
-            </tbody> */}
+            </tbody>
           </table>
           {/* <div className="mt-6 flex items-center justify-center">
             <div className="flex items-center space-x-2">
@@ -297,7 +329,7 @@ export const SubnetStatus = () => {
                 className={`px-3 py-2 rounded-xl text-sm font-medium ${
                   currentPage === 1
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-600'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 dark:bg-gray-800  dark:hover:bg-gray-700 dark:border-gray-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    dark:border-gray-600'
                 }`}
               >
                 Previous
@@ -310,7 +342,7 @@ export const SubnetStatus = () => {
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
                       currentPage === pageNum
                         ? 'bg-blue-500 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 dark:bg-gray-800  dark:hover:bg-gray-700 dark:border-gray-600'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    dark:border-gray-600'
                     }`}
                   >
                     {pageNum}
@@ -323,7 +355,7 @@ export const SubnetStatus = () => {
                 className={`px-3 py-2 rounded-xl text-sm font-medium ${
                   currentPage === totalPages
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-600'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 dark:bg-gray-800  dark:hover:bg-gray-700 dark:border-gray-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300    dark:border-gray-600'
                 }`}
               >
                 Next
