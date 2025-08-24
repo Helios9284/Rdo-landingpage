@@ -168,6 +168,25 @@ exports.getStatusHistory = async (req, res) => {
     }
 }
 
+exports.getChangedSubnet= async (req, res) => {
+    try{
+        const history = await ChangedHistory.find().sort({ timestamp: -1 });
+        if(!history){
+            return res.status(404).json({ 
+                success: false, 
+                message: 'No history found' });
+        }
+        return res.status(200).json({ 
+            success: true, 
+            data: history });
+    } catch(error){
+        console.log(error)
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Server Error' });
+    }
+}
+
 exports.checkStatusChanges = async (req, res) => {
     try{
         const data = req.body.snapshot;

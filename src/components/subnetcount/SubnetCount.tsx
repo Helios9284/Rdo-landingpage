@@ -19,7 +19,6 @@ export const SubnetCount = () => {
         async function updateSubnetStatus() {
             try {
                 const subnetStatuses = await axios.get(`${BASE_URL}/save/getHistory`);
-                console.log("Fetched subnet statuses:", subnetStatuses.data.data);
                 setSubnetStatus(subnetStatuses.data.data);
                 const counts = {active: 0, burning: 0, dead: 0, total: subnetStatuses.data.data.length};
                 try {
@@ -49,7 +48,7 @@ export const SubnetCount = () => {
 
     return (
         <div className="bg-gray-100  shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 ">
+          <h2 className="bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 inline-block text-transparent bg-clip-text text-xl">
             Current Status Overview
           </h2>
           <div className="grid grid-cols-2 gap-4">

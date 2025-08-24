@@ -222,7 +222,6 @@ export const SubnetStatus = () => {
         async function updateSubnetStatus() {
             try {
                 const subnetStatuses = await axios.get(`${BASE_URL}/save/getHistory`);
-                console.log("Fetched subnet statuses:", subnetStatuses.data.data);
                 setSubnetStatus(subnetStatuses.data.data);
             } catch (err) {
                 console.error("Failed to update status history:", err);
@@ -263,7 +262,6 @@ export const SubnetStatus = () => {
     };
 
     const formatPrice = (subnetPrice: string | number) => {
-      console.log("Formatting price:", subnetPrice, "TAO price:", taoPrice, "Show USD:", showUSD);
       if (!subnetPrice || !taoPrice) return "N/A";
       const price = typeof subnetPrice === 'string' ? parseFloat(subnetPrice) : subnetPrice;
       if (showUSD) {
@@ -286,7 +284,13 @@ export const SubnetStatus = () => {
     };
       
     return (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto space-y-10">
+          <div className="flex justify-center">
+            <span className="bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 inline-block text-transparent bg-clip-text text-3xl items-center">
+              <span className="text-4xl">Tao Price:</span>
+              {taoPrice}
+            </span>
+          </div>
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden outline-[0.5px] outline-gray-300 ">
             <thead className="bg-gray-200">
               <tr>
