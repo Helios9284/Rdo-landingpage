@@ -8,7 +8,7 @@ const subnetSchema  = new Schema({
         default: Date.now, 
     }, 
     netuid: { 
-        type: String,
+        type: Number,
         required: true, 
     },
 	name: {
@@ -17,6 +17,14 @@ const subnetSchema  = new Schema({
 	},
     status: { 
         type: String, 
+        required: true, 
+    }, 
+    activevalidator: { 
+        type: Number, 
+        required: true, 
+    }, 
+    activeminer: { 
+        type: Number, 
         required: true, 
     }, 
     

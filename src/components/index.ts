@@ -1,6 +1,2 @@
 export * from './header'
-export * from './recent'
-export * from './portfolio'
-export * from './news'
-export * from './chart'
-export * from './card'
+export * from './subnetstatus'

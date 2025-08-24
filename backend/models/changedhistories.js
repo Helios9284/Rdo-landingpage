@@ -8,7 +8,7 @@ const changedHistorySchema = new Schema({
         default: Date.now, 
     }, 
     netuid: { 
-        type: String,
+        type: Number,
         required: true, 
     },
     oldname: {
@@ -30,6 +30,6 @@ const changedHistorySchema = new Schema({
     
 }); 
 
-ChangedHistory = mongoose.model('ChangedHistory', changedHistorySchema);
+ChangedHistory = mongoose.model('changedhistories', changedHistorySchema);
 
 module.exports = ChangedHistory;

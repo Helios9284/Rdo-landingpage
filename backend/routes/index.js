@@ -1,7 +1,7 @@
 const express = require('express');
-const statusSave = require('./statusHistory');
+const statusHistory = require('./statusHistory');
 
 const router = express.Router();
-router.use('/save', statusSave);
+router.use('/save', statusHistory);
 
 module.exports = router;

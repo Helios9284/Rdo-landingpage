@@ -3,5 +3,7 @@ const router = express.Router();
 
 const history = require("../controller/statusHistory");
 router.post('/statusHistory', history.saveStatusHistory);
+router.get('/getHistory', history.getStatusHistory);
+router.post('/checkStatusChanges', history.checkStatusChanges);
 
 module.exports = router;
