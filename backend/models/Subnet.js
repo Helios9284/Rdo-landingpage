@@ -18,7 +18,15 @@ const subnetSchema  = new Schema({
     status: { 
         type: String, 
         required: true, 
-    }, 
+    },
+    alphaprice: { 
+        type: Number, 
+        required: false, 
+    },
+    regprice: { 
+        type: Number,
+        required: false, 
+    },
     activevalidator: { 
         type: Number, 
         required: true, 
