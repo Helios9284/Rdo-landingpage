@@ -26,82 +26,120 @@ const compareStatuses = (currentSnapshots, previousSnapshots) => {
   return changes;
 };
 
-exports.saveStatusHistory = async (req, res) =>{
-    try{
-        const data = req.body.snapshot;
+    exports.saveStatusHistory = async (req, res) =>{
+        try{
+            const data = req.body.snapshot;
 
-        const previousSnapshots = await StatusHistory.find({})
-            .sort({ createdAt: -1 })
-            .limit(data.length);
-        if (!previousSnapshots) {
-            console.log("No previous snapshots found, saving initial data.");
-            data.forEach(async (element) => {
-                const { netuid, name, status, activeMiners, activeValidators } = element;
-                const newStatus = new StatusHistory({
-                    netuid: netuid,
-                    name: name,
-                    status: status,
-                    activevalidator: activeValidators,
-                    activeminer: activeMiners
-                });
-                await newStatus.save();
-            });
-            return res.status(200).json({
-                success: true, 
-                message: 'Initial status history saved successfully',
-            })
-        } else if (previousSnapshots) {
-            const changes = compareStatuses(data, previousSnapshots);
-            if (changes.length > 0) {
-                for (const change of changes) {
-                    const data = {
-                        netuid: change.netuid,
-                        oldname: change.oldName,
-                        newname: change.newName,
-                        oldstatus: change.oldStatus,
-                        newstatus: change.newStatus}
-                    const historyEntry = new ChangedHistory(data);
-                    const savedEntry = await historyEntry.save();
-                    console.log("Successfully saved:", savedEntry);
-                }
+            const previousSnapshots = await StatusHistory.find({})
+                .sort({ createdAt: -1 })
+                .limit(data.length);
+            if (!previousSnapshots) {
+                console.log("No previous snapshots found, saving initial data.");
                 data.forEach(async (element) => {
                     const { netuid, name, status, activeMiners, activeValidators } = element;
-                    const existingStatus = await StatusHistory.findOne({ netuid: netuid });
-                    if (existingStatus) {
-                        existingStatus.name = name;
-                        existingStatus.status = status;
-                        existingStatus.activevalidator = activeValidators;
-                        existingStatus.activeminer = activeMiners;
-                        await existingStatus.save();
-                    } else {
-                        const newStatus = new StatusHistory({
-                            netuid: netuid,
-                            name: name,
-                            status: status,
-                            activevalidator: activeValidators,
-                            activeminer: activeMiners
-                        });
-                        await newStatus.save();
-                    }
+                    const newStatus = new StatusHistory({
+                        netuid: netuid,
+                        name: name,
+                        status: status,
+                        activevalidator: activeValidators,
+                        activeminer: activeMiners
+                    });
+                    await newStatus.save();
                 });
-                return res.status(200).json({ 
+                return res.status(200).json({
                     success: true, 
-                    message: 'Status changes detected and saved', 
-                    changes: changes });
-            } else {
-                return res.status(200).json({ 
-                    success: true, 
-                    message: 'No status changes detected' });
-            }
-        }
+                    message: 'Initial status history saved successfully',
+                })
+            } else if (previousSnapshots) {
+                const changes = compareStatuses(data, previousSnapshots);
+                if (changes.length > 0) {
+                    for (const change of changes) {
+                        const data = {
+                            netuid: change.netuid,
+                            oldname: change.oldName,
+                            newname: change.newName,
+                            oldstatus: change.oldStatus,
+                            newstatus: change.newStatus}
+                        const historyEntry = new ChangedHistory(data);
+                        const savedEntry = await historyEntry.save();
+                        console.log("Successfully saved:", savedEntry);
+                    }
+                    data.forEach(async (element) => {
+                        const { netuid, name, status, activeMiners, activeValidators } = element;
+                        const existingStatus = await StatusHistory.findOneAndUpdate({ netuid: netuid });
+                        if (existingStatus) {
+                            existingStatus.name = name;
+                            existingStatus.status = status;
+                            existingStatus.activevalidator = activeValidators;
+                            existingStatus.activeminer = activeMiners;
+                            await existingStatus.save();
+                        } else {
+                            const newStatus = new StatusHistory({
+                                netuid: netuid,
+                                name: name,
+                                status: status,
+                                activevalidator: activeValidators,
+                                activeminer: activeMiners
+                            });
+                            await newStatus.save();
+                        }
+                    });
+                    return res.status(200).json({ 
+                        success: true, 
+                        message: 'Status changes detected and saved', 
+                        changes: changes });
+                } else {
+                    // Sequential processing (safer)
+                    try {
+                        const data = req.body.snapshot;
+                        const savedData = [];
 
-    }catch(error){
-        console.log(error)
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Server Error' });
+                        for (const element of data) {
+                            const { netuid, name, status, activeMiners, activeValidators } = element;
+                            
+                            const updatedStatus = await StatusHistory.findOneAndUpdate(
+                                { netuid: netuid }, // Find by netuid
+                                {
+                                    name: name,
+                                    status: status,
+                                    activevalidator: activeValidators,
+                                    activeminer: activeMiners,
+                                    updatedAt: new Date()
+                                }, // Update data
+                                {
+                                    new: true, // Return updated document
+                                    upsert: true, // Create if doesn't exist
+                                    runValidators: true
+                                }
+                            );
+                            
+                                savedData.push(updatedStatus);
+                            }
+
+                            return res.status(200).json({ 
+                                success: true, 
+                                message: 'Status history updated successfully',
+                                count: savedData.length,
+                                data: savedData
+                            });
+                            
+                        } catch (error) {
+                            console.log(error);
+                            return res.status(500).json({ 
+                                success: false, 
+                                message: 'Server Error' 
+                            });
+                        }              
+                    }
+                }
+
+        }catch(error){
+                console.log(error)
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Server Error' });
+            }
     }
-}
 
 
 
