@@ -27,8 +27,6 @@ const compareStatuses = (currentSnapshots, previousSnapshots) => {
 exports.saveStatusHistory = async (req, res) =>{
     try{
         const data = req.body.snapshot;
-        console.log("Received snapshot data:", data);
-
         const previousSnapshots = await StatusHistory.find({})
             .sort({ createdAt: -1 })
             .limit(data.length);
@@ -53,7 +51,6 @@ exports.saveStatusHistory = async (req, res) =>{
             })
         } else if (previousSnapshots) {
             const changes = compareStatuses(data, previousSnapshots);
-            console.log("Detected changes:", changes);
             if (changes.length > 0) {
                 for (const change of changes) {
                     const data = {
@@ -64,7 +61,6 @@ exports.saveStatusHistory = async (req, res) =>{
                         newstatus: change.newStatus}
                     const historyEntry = new ChangedHistory(data);
                     const savedEntry = await historyEntry.save();
-                    console.log("Successfully saved:", savedEntry);
                 }
                 data.forEach(async (element) => {
                     const { netuid, name, status, alpha_price, reg_price, activeMiners, activeValidators } = element;
@@ -173,7 +169,6 @@ exports.getStatusHistory = async (req, res) => {
 exports.getChangedSubnet= async (req, res) => {
     try{
         const history = await ChangedHistory.find().sort({ timestamp: -1 });
-        // console.log("Fetched changed subnet history:", history);
         if(!history){
             return res.status(404).json({ 
                 success: false, 
@@ -193,7 +188,6 @@ exports.getChangedSubnet= async (req, res) => {
 exports.checkStatusChanges = async (req, res) => {
     try{
         const data = req.body.snapshot;
-        console.log("Received snapshot for change check:", data);
         data.forEach( async (element) => {
             const { netuid, name, status } = element;
             const existingStatus = await StatusHistory.findOne({ netuid: netuid });

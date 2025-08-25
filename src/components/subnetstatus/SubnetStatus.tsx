@@ -205,7 +205,6 @@ export const SubnetStatus = () => {
 
                 if (isInitialLoad.current) {
                     const currentSnapshot = createCurrentSnapshot(data.data.data, subnetInfoData.data.data);
-                    console.log("Current snapshot:", currentSnapshot);
                     await axios.post(`${BASE_URL}/save/statusHistory`, { snapshot: currentSnapshot });
                     isInitialLoad.current = false;
                 }
@@ -265,7 +264,6 @@ export const SubnetStatus = () => {
     const formatPrice = (subnetPrice: string | number) => {
       if (!subnetPrice || !taoPrice) return "N/A";
       const price = typeof subnetPrice === 'string' ? parseFloat(subnetPrice) : subnetPrice;
-      console.log("Formatting price:", price, "with taoPrice:", taoPrice, "showUSD:", showUSD);
       if (showUSD) {
         const usdPrice = price * taoPrice;
         return `$${usdPrice.toFixed(2)}`;
