@@ -20,12 +20,12 @@ const subnetSchema  = new Schema({
         required: true, 
     },
     alphaprice: { 
-        type: Number, 
-        required: false, 
+        type: String, 
+        required: true, 
     },
     regprice: { 
-        type: Number,
-        required: false, 
+        type: String,
+        required: true, 
     },
     activevalidator: { 
         type: Number, 

@@ -27,6 +27,7 @@ const compareStatuses = (currentSnapshots, previousSnapshots) => {
 exports.saveStatusHistory = async (req, res) =>{
     try{
         const data = req.body.snapshot;
+        console.log("Received snapshot data:", data);
 
         const previousSnapshots = await StatusHistory.find({})
             .sort({ createdAt: -1 })
@@ -34,12 +35,12 @@ exports.saveStatusHistory = async (req, res) =>{
         if (!previousSnapshots) {
             console.log("No previous snapshots found, saving initial data.");
             data.forEach(async (element) => {
-                const { netuid, name, status, alphaprice, regprice, activeMiners, activeValidators } = element;
+                const { netuid, name, status, alpha_price, reg_price, activeMiners, activeValidators } = element;
                 const newStatus = new StatusHistory({
                     netuid: netuid,
                     name: name,
-                    alphaprice: alphaprice,
-                    regprice: regprice,
+                    alphaprice: alpha_price,
+                    regprice: reg_price,
                     status: status,
                     activevalidator: activeValidators,
                     activeminer: activeMiners
@@ -52,6 +53,7 @@ exports.saveStatusHistory = async (req, res) =>{
             })
         } else if (previousSnapshots) {
             const changes = compareStatuses(data, previousSnapshots);
+            console.log("Detected changes:", changes);
             if (changes.length > 0) {
                 for (const change of changes) {
                     const data = {
@@ -65,23 +67,23 @@ exports.saveStatusHistory = async (req, res) =>{
                     console.log("Successfully saved:", savedEntry);
                 }
                 data.forEach(async (element) => {
-                    const { netuid, name, status, alphaprice, regprice, activeMiners, activeValidators } = element;
+                    const { netuid, name, status, alpha_price, reg_price, activeMiners, activeValidators } = element;
                     const existingStatus = await StatusHistory.findOneAndUpdate({ netuid: netuid });
                     if (existingStatus) {
                         existingStatus.name = name;
                         existingStatus.status = status;
                         existingStatus.activevalidator = activeValidators;
                         existingStatus.activeminer = activeMiners;
-                        existingStatus.alphaprice = element.alphaprice;
-                        existingStatus.regprice = element.regprice;
+                        existingStatus.alphaprice = alpha_price;
+                        existingStatus.regprice = reg_price;
                         await existingStatus.save();
                     } else {
                         const newStatus = new StatusHistory({
                             netuid: netuid,
                             name: name,
                             status: status,
-                            alphaprice:alphaprice,
-                            regprice: regprice,
+                            alphaprice:alpha_price,
+                            regprice: reg_price,
                             activevalidator: activeValidators,
                             activeminer: activeMiners
                         });
@@ -99,15 +101,15 @@ exports.saveStatusHistory = async (req, res) =>{
                     const savedData = [];
 
                     for (const element of data) {
-                        const { netuid, name, alphaprice, regprice, status, activeMiners, activeValidators } = element;
+                        const { netuid, name, alpha_price, reg_price, status, activeMiners, activeValidators } = element;
                         
                         const updatedStatus = await StatusHistory.findOneAndUpdate(
                             { netuid: netuid }, // Find by netuid
                             {
                                 name: name,
                                 status: status,
-                                alphaprice: alphaprice,
-                                regprice: regprice,
+                                alphaprice: alpha_price,
+                                regprice: reg_price,
                                 activevalidator: activeValidators,
                                 activeminer: activeMiners,
                                 updatedAt: new Date()
@@ -171,6 +173,7 @@ exports.getStatusHistory = async (req, res) => {
 exports.getChangedSubnet= async (req, res) => {
     try{
         const history = await ChangedHistory.find().sort({ timestamp: -1 });
+        // console.log("Fetched changed subnet history:", history);
         if(!history){
             return res.status(404).json({ 
                 success: false, 

@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/server.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["package.json", "package-lock.json"]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "src/server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": "5001",
+    "JWT_SECRET": "your_jwt_secret_key_change_in_production",
+    "JWT_EXPIRE": "30d",
+    "CONTRACT_ADDRESS": "0x14ffEc1ae48D4113f15A77da556AA5C571dd7dBb",
+    "CONTRACT_NETWORK_ID": "11155111",
+    "CONTRACT_TOKEN_ADDRESS": "0x47f637c3ef8A17a4cf369Ae7A4FE8d9bf0bdF0Af",
+    "ADMIN_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "CLIENT_URL": "https://lsrw-tn9g.vercel.app",
+    "NETWORK_ID": "11155111",
+    "PG_HOST": "ep-orange-wave-a4kgk08j-pooler.us-east-1.aws.neon.tech",
+    "PG_PORT": "5432",
+    "PG_DATABASE": "neondb",
+    "PG_USER": "neondb_owner",
+    "PG_SSL": "true",
+    "DATABASE_URL": "postgres://neondb_owner:npg_9Rbl6EdaSwWm@ep-orange-wave-a4kgk08j-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
+  }
+}
