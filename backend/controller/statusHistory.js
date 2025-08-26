@@ -149,6 +149,7 @@ exports.saveStatusHistory = async (req, res) =>{
 
 exports.getStatusHistory = async (req, res) => {
     try{
+        console.log("0000000000")
         const history = await StatusHistory.find().sort({ timestamp: -1 });
         if(!history){
             return res.status(404).json({ 
